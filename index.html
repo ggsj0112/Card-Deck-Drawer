@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Card Draw Simulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f3f4f6;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    input {
+      padding: 4px;
+      width: 60px;
+    }
+
+    button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: #6b7280; color: white; }
+
+    .player {
+      margin-bottom: 24px;
+    }
+
+    .hand {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      width: 80px;
+      height: 112px;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .card-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transform-style: preserve-3d;
+      transition: transform 0.4s;
+      position: relative;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .card-back {
+      background: #1f2937;
+    }
+
+    .card-front {
+      background: white;
+      transform: rotateY(180deg);
+      flex-direction: column;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🎴 Card Draw Simulator</h1>
+
+  <div class="controls">
+    <label>Players
+      <input id="players" type="number" min="1" value="2">
+    </label>
+
+    <label>Cards each
+      <input id="cards" type="number" min="1" value="5">
+    </label>
+
+    <button class="primary" onclick="deal()">Shuffle & Deal</button>
+    <button class="secondary" onclick="resetGame()">Restart</button>
+  </div>
+
+  <div id="table"></div>
+
+  <script>
+    const suits = ["♠", "♥", "♦", "♣"];
+    const colors = { "♠": "black", "♣": "black", "♥": "red", "♦": "red" };
+
+    function buildDeck() {
+      const deck = [];
+      for (const suit of suits) {
+        for (let v = 1; v <= 13; v++) {
+          const label =
+            v === 1 ? "A" :
+            v === 11 ? "J" :
+            v === 12 ? "Q" :
+            v === 13 ? "K" : v;
+          deck.push({ label, suit, color: colors[suit] });
+        }
+      }
+      deck.push({ label: "JOKER", suit: "🃏", color: "red" });
+      deck.push({ label: "JOKER", suit: "🃏", color: "black" });
+      return deck.sort(() => Math.random() - 0.5);
+    }
+
+    function deal() {
+      const players = +document.getElementById("players").value;
+      const cardsEach = +document.getElementById("cards").value;
+      const table = document.getElementById("table");
+      table.innerHTML = "";
+
+      const deck = buildDeck();
+
+      for (let p = 0; p < players; p++) {
+        const playerDiv = document.createElement("div");
+        playerDiv.className = "player";
+        playerDiv.innerHTML = `<strong>Player ${p + 1}</strong>`;
+
+        const hand = document.createElement("div");
+        hand.className = "hand";
+
+        for (let c = 0; c < cardsEach; c++) {
+          if (!deck.length) break;
+          const card = deck.pop();
+
+          const cardEl = document.createElement("div");
+          cardEl.className = "card";
+          cardEl.onclick = () => cardEl.classList.toggle("flipped");
+
+          cardEl.innerHTML = `
+            <div class="card-inner">
+              <div class="card-face card-back"></div>
+              <div class="card-face card-front" style="color:${card.color}">
+                <div>${card.label}</div>
+                <div>${card.suit}</div>
+              </div>
+            </div>
+          `;
+          hand.appendChild(cardEl);
+        }
+
+        playerDiv.appendChild(hand);
+        table.appendChild(playerDiv);
+      }
+    }
+
+    function resetGame() {
+      document.getElementById("table").innerHTML = "";
+    }
+  </script>
+</body>
+</html>
